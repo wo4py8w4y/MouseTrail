@@ -15,3 +15,5 @@ history.json
 *.tmp
 instance.lock
 __pycache__/
+.tools/
+TestResults/

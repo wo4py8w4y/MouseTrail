@@ -1,5 +1,12 @@
 # Changelog
 
+## Unreleased
+
+- Rewrote getting-started and IIS deployment instructions as numbered steps.
+- Added explicit one-process PowerShell execution-policy commands.
+- Added a project-local Pester runner with deployment and packaged-app tests.
+- Recorded a full run with 15 passed, 0 failed and 0 skipped.
+
 ## 1.1.0 — Preview
 
 - Added Midnight mint, Amber terminal, Cyan lab and Violet spectrum themes.

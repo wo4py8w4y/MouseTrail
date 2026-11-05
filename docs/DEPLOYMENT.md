@@ -1,156 +1,161 @@
-# MouseTrail IIS deployment kit
+# MouseTrail setup — step by step
 
-This package contains a self-contained Windows x64 tracker, an IIS installation
-page, ClickOnce manifests with update checks, and scripts for site configuration,
-certificates, permissions and future releases.
+## 1. Set up a local IIS download site
 
-## Quick local IIS test
+These steps use the **IIS release ZIP**. They do not require a source-code build.
+The example uses a separate site named `MouseTrail` on port **18088**.
 
-For the IIS release ZIP, extract it. For a source checkout, first run the build script and enter the `deploy` directory. In **Windows PowerShell 5.1 as Administrator**, run the
-following from the extracted directory. The port is configurable.
+### Step 1 — Download the kit
 
-```powershell
-.\Install-MouseTrailIIS.ps1 -InstallIis -SiteName MouseTrail-Test `
-    -PhysicalPath C:\inetpub\MouseTrail-Test `
-    -Protocol Http -DnsName localhost -Port 18080
-```
+Open the [release page](https://github.com/wo4py8w4y/MouseTrail/releases/tag/v1.1.0-preview).
+Download **MouseTrail-IIS.zip** into your **Downloads** folder.
 
-Open `http://localhost:18080/` in Edge and select **Install MouseTrail for Windows**.
-ClickOnce must be permitted by the browser and machine policy. If the browser
-downloads `MouseTrail.application`, open it to start installation. The supplied
-preview manifests are unsigned. Trust policy can block them. For normal deployment,
-publish with a code-signing certificate trusted by your intended clients.
+### Step 2 — Unblock the ZIP
 
-The initial ClickOnce provider URL is intentionally omitted. This lets the same
-package use the original HTTP installation URL as its update location. Install
-from the site rather than copying a deployment manifest into an unrelated folder.
-Keep the installation URL stable for existing users. Once your hostname is known,
-use `-PublicUrl` when publishing the next release to set a permanent update URL.
+In File Explorer, right-click **MouseTrail-IIS.zip** and select **Properties**.
+If **Unblock** appears near the bottom, select it and click **OK**.
 
-## IIS features, binding and permissions
+Unblock removes the Windows download mark. It does not sign the app or make an
+untrusted publisher or HTTPS certificate trusted.
 
-`-InstallIis` installs Windows optional features on desktop Windows, or the IIS
-role services on Windows Server. It stops and requests a restart if required.
-The script creates a dedicated application pool with ApplicationPoolIdentity,
-no managed runtime, anonymous downloads running as that pool identity, and no
-directory listing. The server only serves static installation files.
+### Step 3 — Extract it
 
-The destination must be empty or previously created by this script. Existing
-unrelated sites and directories are rejected. Source and destination paths must
-not overlap. Links and junctions in either tree are rejected.
+Right-click the ZIP and select **Extract All**.
+Enter `C:\MouseTrail-Setup` as the destination and select **Extract**.
 
-The script replaces permissions inside the dedicated site tree with protected
-NTFS ACLs. Administrators and SYSTEM receive FullControl. The specific
-`IIS AppPool\<SiteName>-Pool` receives ReadAndExecute. General Users, IUSR and
-the broad IIS_IUSRS group receive no explicit access. This means your normal
-unelevated account may be unable to browse the deployed folder; use an elevated
-session to publish or inspect it. Private keys are stored in certificate stores,
-outside the website directory.
+Open `C:\MouseTrail-Setup\MouseTrail-IIS`.
+You should see **Install-MouseTrailIIS.ps1** and a folder named **site**.
 
-`-Port` selects the website port. The default is HTTPS 8443. Production HTTPS
-normally uses 443. Port 143 is normally IMAP. `-IPAddress` defaults to `*` so
-both IPv4 and IPv6 localhost requests work. `-DnsName` supplies the Host binding
-and certificate name. No firewall rule is created unless `-OpenFirewall` is passed.
-Configure DNS and upstream firewall/NAT rules separately for public hosting.
+### Step 4 — Open an administrator PowerShell window
 
-## HTTPS certificates
+Click **Start**, type **Windows PowerShell**, right-click **Windows PowerShell**,
+and select **Run as administrator**. Accept the Windows approval prompt.
 
-Use an existing certificate from LocalMachine\My with a private key and Server
-Authentication usage. If its thumbprint is omitted, the script searches for a
-valid certificate matching the DNS name.
+Use **Windows PowerShell 5.1** for IIS setup. The command below explicitly starts
+that version even if your terminal normally uses PowerShell 7.
+
+### Step 5 — Copy and run this command
+
+Paste the entire command into the administrator window and press Enter.
 
 ```powershell
-.\Install-MouseTrailIIS.ps1 -SiteName MouseTrail `
-    -PhysicalPath C:\inetpub\MouseTrail -DnsName downloads.example.com `
-    -Port 443 -CertificateMode Existing -CertificateThumbprint YOUR_THUMBPRINT `
-    -OpenFirewall
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File "C:\MouseTrail-Setup\MouseTrail-IIS\Install-MouseTrailIIS.ps1" -InstallIis -SiteName MouseTrail -PhysicalPath "C:\inetpub\MouseTrail" -Protocol Http -DnsName localhost -Port 18088
 ```
 
-For an available enterprise CA, use `-CertificateMode EnterpriseCA` and optionally
-`-CertificateTemplate WebServer`. The Windows enrollment policy selects the CA.
-Your account/computer must have enrollment permission and the template must allow
-the requested subject and DNS name. A pending request stops setup for CA approval.
-The script does not install or modify a CA.
+The execution-policy setting applies to this new PowerShell process and ends when
+it exits. It does not change the machine's permanent policy. Organisation Group
+Policy can still take precedence.
 
-For a local HTTPS test, use a different dedicated site and directory.
+Wait for setup to finish. If it requests a Windows restart, restart and run the
+same command again.
 
-```powershell
-.\Install-MouseTrailIIS.ps1 -SiteName MouseTrail-TLS-Test `
-    -PhysicalPath C:\inetpub\MouseTrail-TLS-Test `
-    -DnsName localhost -Port 18443 -CertificateMode SelfSigned
-```
+### Step 6 — Check the result
 
-The script generates a non-exportable test HTTPS key and binds its certificate
-using SNI. A self-signed certificate is not automatically trusted by browsers or
-ClickOnce. The script deliberately leaves trust-store enrollment to your normal
-certificate-management process. Reuse the issued certificate with `Existing` on
-later runs rather than generating another test certificate.
+The last output should include **Site ready at http://localhost:18088/**.
+Open [the new local installation page](http://localhost:18088/) in Edge.
+You should see a MouseTrail page with an **Install MouseTrail for Windows** button.
 
-## ClickOnce signing and updates
+If the installer reports a name, directory or port conflict, stop and choose a new
+site name, destination and unused port. Existing sites are not taken over.
 
-HTTPS certificates and ClickOnce code-signing certificates have different usages.
-Use a Code Signing certificate with a private key in the publisher's CurrentUser\My
-store. Obtain one from an enterprise CA if available.
+### Step 7 — Try the application installation
 
-```powershell
-.\New-MouseTrailSigningCertificate.ps1 -Mode EnterpriseCA -Template CodeSigning
-.\Publish-MouseTrail.ps1 -Version 1.1.0.1 `
-    -PublicUrl https://downloads.example.com/ `
-    -SigningCertificateThumbprint YOUR_CODE_SIGNING_THUMBPRINT
-```
+Click **Install MouseTrail for Windows**.
+If Edge downloads **MouseTrail.application**, open that file.
 
-The signing helper also supports `-Mode SelfSigned` for development. Clients must
-trust the signing identity through their normal administrative process. For
-public distribution, use a suitable publicly trusted code-signing identity.
+Follow the Windows installation prompts. This preview is unsigned, so Windows or
+organisation policy may block it. Record any error for the signing/install test.
+Unblock-File does not resolve an untrusted publisher or certificate.
 
-Publish from the same Windows user that holds the signing key. The bundled
-Microsoft dotnet-mage tool requires .NET on the publishing machine. End users
-receive a self-contained .NET app. Windows ClickOnce infrastructure is also
-required on clients; it is provided by Windows/.NET Framework on supported Windows.
+After a successful installation, open **MouseTrail** from Start. Keep its tracker
+window open and click **Start tracking** in the dashboard.
 
-Every release must have a new four-part version. Old version folders are retained.
-The release files are copied before the entry deployment manifest is replaced, so
-downloads see a complete version. ClickOnce checks for updates before starting.
-Close any running tracker before accepting an application update.
+### Step 8 — Check that it works
 
-To build source changes, install the .NET 10 SDK on the build machine, then run
-`Build-MouseTrail.ps1` with a new version and signing thumbprint. That script builds
-the bundled source into `payload` and publishes it to `site`.
+Move the mouse and check that the pixel counter changes. Click **Pause & save**.
+Open a new session, then check that the previous session remains in history.
 
-To deploy a new release, run the IIS installation script again using the same
-site name, directory, port and certificate. It copies the updated `site` folder
-and restores the strict ACLs. To change bindings, update the site's binding
-explicitly first. The script refuses unexpected existing bindings.
+The browser dashboard normally uses `http://127.0.0.1:8765`. The IIS download page
+uses `http://localhost:18088`. They are separate parts of the application.
 
-## Named local instances
+## 2. Test HTTPS locally
 
-The default instance preserves existing MouseTrailNative history. To run separate
-instances, launch the payload executable with different names.
+Complete Section 1 first. Use another site and port for this test.
 
-```powershell
-.\payload\MouseTrail.exe --profile work
-.\payload\MouseTrail.exe --profile testing
-```
+1. Open **Windows PowerShell as Administrator**.
+2. Paste this command and press Enter.
 
-Names use 1–32 letters, numbers, underscores or hyphens. Each name gets its own
-data directory and stable local port. If that port is already used, supply
-`--port 18865`. Each instance observes the same desktop cursor but maintains
-separate sessions, calibration and history. This is logical separation within
-your Windows account, not a security boundary between mutually untrusted users.
-Use different Windows accounts for that boundary.
+   ```powershell
+   powershell.exe -NoProfile -ExecutionPolicy Bypass -File "C:\MouseTrail-Setup\MouseTrail-IIS\Install-MouseTrailIIS.ps1" -SiteName MouseTrail-HTTPS -PhysicalPath "C:\inetpub\MouseTrail-HTTPS" -DnsName localhost -Port 18488 -CertificateMode SelfSigned
+   ```
 
-Theme choices are saved per browser origin. Available themes are Midnight mint,
-Amber terminal, Cyan lab and Violet spectrum. Enter 170 PPI for the screen discussed
-during development; other screens need their own calibration.
+3. Wait for **Site ready at https://localhost:18488/**.
+4. Open `https://localhost:18488/` in Edge.
+5. Expect a certificate trust warning until the certificate is trusted through your
+   normal certificate-management process. The script creates the certificate and
+   binding, but does not add it to a trusted root store.
+6. Use a trusted certificate for normal installation and production distribution.
 
-## Package contents
+For enterprise CA enrollment or an existing certificate, follow the
+[certificate reference](DEPLOYMENT-REFERENCE.md#https-certificates).
 
-- `site` — upload or deploy this directory to IIS.
-- `site-template` — editable install-page and IIS configuration templates.
-- `payload` — portable app files, used to create future deployments.
-- `src` — application source and browser interface.
-- `tools` — Microsoft dotnet-mage tooling, including its hidden .store directory.
-- PowerShell scripts — publishing, builds, IIS setup and certificate enrollment.
+## 3. Run validation
 
-Raw cursor samples stay in memory. History stores per-session summary metrics.
-The website only distributes files; it receives no cursor measurements.
+The repository's validation steps are in [TESTING.md](TESTING.md).
+They cover script checks and the native app. The interactive installation above
+is a separate test.
+
+## 4. Build and publish an update
+
+These steps use a **source checkout**, such as `D:\MouseTrail`.
+You need Git and the .NET 10 SDK on this publishing computer.
+
+1. Open a normal PowerShell window.
+2. Go to the repository and pull the latest changes.
+
+   ```powershell
+   Set-Location D:\MouseTrail
+   git pull
+   ```
+
+3. Build a new version. Every release needs a new four-part version number.
+   This example uses `1.1.0.1`; choose a higher unused number for later updates.
+
+   ```powershell
+   powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\deploy\Build-MouseTrail.ps1 -Version 1.1.0.1
+   ```
+
+4. Wait for the build and publishing commands to finish. The new site is in
+   `D:\MouseTrail\deploy\site`.
+5. Open **Windows PowerShell as Administrator**.
+6. Deploy that site using the **same name, directory and port** used in Section 1.
+
+   ```powershell
+   powershell.exe -NoProfile -ExecutionPolicy Bypass -File "D:\MouseTrail\deploy\Install-MouseTrailIIS.ps1" -SiteName MouseTrail -PhysicalPath "C:\inetpub\MouseTrail" -Protocol Http -DnsName localhost -Port 18088
+   ```
+
+7. On the client, close the running tracker and open MouseTrail again from Start.
+8. Check whether ClickOnce offers the new version. Record the installed version
+   and confirm that session history remains available.
+
+For production signing, obtain a trusted code-signing certificate first and pass
+its thumbprint when publishing. Use the same signing identity for subsequent
+releases. The [signing reference](DEPLOYMENT-REFERENCE.md#clickonce-signing-and-updates)
+explains the relevant parameters.
+
+## If PowerShell blocks a script
+
+1. Confirm the script came from this repository or its release package.
+2. Unblock that specific file if it was downloaded separately.
+
+   ```powershell
+   Unblock-File -LiteralPath "C:\MouseTrail-Setup\MouseTrail-IIS\Install-MouseTrailIIS.ps1"
+   ```
+
+3. Use the explicit `powershell.exe -ExecutionPolicy Bypass -File ...` command in
+   the setup steps. It applies only to that process.
+4. If Group Policy still blocks the script, use your organisation's approved
+   signing/deployment process.
+
+Microsoft documents the behaviour of [execution-policy scopes](https://learn.microsoft.com/en-us/powershell/module/microsoft.powershell.core/about/about_execution_policies)
+and [Unblock-File](https://learn.microsoft.com/en-us/powershell/module/microsoft.powershell.utility/unblock-file).

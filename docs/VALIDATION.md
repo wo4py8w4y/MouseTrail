@@ -2,6 +2,16 @@
 
 Verified on the Windows development computer on 6 November 2026.
 
+## Repeatable Pester check
+
+The repository now includes `Invoke-Validation.ps1` and two Pester test files.
+The full run on Windows PowerShell 5.1 with project-local Pester 5.7.1 completed
+with **15 passed, 0 failed, 0 skipped**. Eight tests cover deployment-script
+validation and seven exercise the packaged Windows tracker. No failing findings
+were recorded in this run. See [the test instructions](TESTING.md) to repeat it.
+
+## Earlier integration checks
+
 | Check | Result |
 |---|---|
 | Self-contained executable startup | Passed |

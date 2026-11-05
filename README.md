@@ -74,6 +74,7 @@ or organisation policy may still restrict installation.
 
 - [Step-by-step IIS setup, certificates and updates](docs/DEPLOYMENT.md)
 - [Detailed deployment reference](docs/DEPLOYMENT-REFERENCE.md)
+- [Run the Pester validation tests](docs/TESTING.md)
 - [Verification results](docs/VALIDATION.md)
 - [Changes so far](CHANGELOG.md)
 

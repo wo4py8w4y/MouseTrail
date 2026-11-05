@@ -1,0 +1,17 @@
+**/bin/
+**/obj/
+deploy/payload/
+deploy/site/
+deploy/tools/
+*.zip
+*.pfx
+*.p12
+*.key
+*.cer
+*.log
+.vs/
+.vscode/
+history.json
+*.tmp
+instance.lock
+__pycache__/

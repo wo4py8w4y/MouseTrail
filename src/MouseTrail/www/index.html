@@ -1,0 +1,153 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>MouseTrail</title><link rel="manifest" href="/manifest.webmanifest"><meta name="theme-color" content="#10151d"><link rel="icon" href="/icon-192.png">
+<style>
+:root{--background:#10151d;--panel:#19212d;--text:#e8edf4;--muted:#a7b4c8;--accent:#91edc1;--border:#2e3c4f;--plot:#101820;--console:#0b1117;--console-text:#8ddbb3;--readout:#a8dbf5;--button:#26354a;--hero-start:#1c3940;--hero-end:#182331}
+:root[data-theme="amber"]{--background:#17130c;--panel:#252015;--accent:#ffcb71;--border:#51432a;--plot:#18150e;--console:#100e09;--console-text:#e4bc76;--readout:#ffe2a5;--button:#3d3322;--hero-start:#44341c;--hero-end:#282013;--muted:#c5b696}
+:root[data-theme="cyan"]{--background:#08151e;--panel:#102735;--accent:#65e7ff;--border:#245268;--plot:#091b26;--console:#06121b;--console-text:#83ddeb;--readout:#91e5ff;--button:#1c3d50;--hero-start:#164759;--hero-end:#102535}
+:root[data-theme="violet"]{--background:#171224;--panel:#251e38;--accent:#c4a7ff;--border:#4c3a67;--plot:#191328;--console:#110d1c;--console-text:#bfa3eb;--readout:#d2bcff;--button:#3b2d54;--hero-start:#40305a;--hero-end:#241b37}
+select{font:inherit;color:var(--text);background:var(--panel);border:1px solid var(--border);border-radius:8px;padding:9px}.profile-label{font:12px Consolas,monospace;color:var(--muted);margin-top:8px}
+
+:root{font-family:Segoe UI,system-ui,sans-serif;color:var(--text);background:var(--background);color-scheme:dark}*{box-sizing:border-box}body{margin:0}main{max-width:1100px;margin:auto;padding:40px 24px}header,.row{display:flex;justify-content:space-between;align-items:center;gap:16px;flex-wrap:wrap}h1{margin:0;font-size:26px}h2{font-size:18px}p,.muted{color:var(--muted);line-height:1.6}.brand{color:var(--accent);font-size:12px;letter-spacing:3px;text-transform:uppercase}.badge{border:1px solid #425064;border-radius:30px;padding:8px 15px}.hero{margin-top:32px;padding:32px;background:linear-gradient(125deg,var(--hero-start),var(--hero-end));border:1px solid #34545c;border-radius:20px}.number{font-size:clamp(42px,7vw,80px);font-weight:650;letter-spacing:-3px;margin:12px 0}.number small{font-size:24px;letter-spacing:0;color:var(--muted)}.cards{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin:20px 0}.card,section{background:var(--panel);border:1px solid var(--border);border-radius:14px;padding:22px}.value{font-size:28px;margin-top:10px}button,input{font:inherit;border-radius:8px;padding:11px 17px;border:1px solid #52637c}button{cursor:pointer;background:var(--button);color:var(--text)}button.primary{background:var(--accent);color:#102b24;border-color:var(--accent);font-weight:600}button:disabled{opacity:.45;cursor:default}button:hover:not(:disabled){filter:brightness(1.15)}button:focus-visible,input:focus-visible{outline:3px solid var(--accent);outline-offset:3px}input{width:110px;background:var(--background)}section{margin-top:20px}table{width:100%;border-collapse:collapse;text-align:left;font-size:14px}td,th{padding:14px 8px;border-bottom:1px solid #304055}th{color:var(--muted);font-weight:500}.scroll{overflow-x:auto}#notice{color:#ffcb9c;min-height:24px}footer{color:#91a0b4;font-size:13px;margin-top:24px}@media(max-width:620px){.cards{grid-template-columns:1fr}.hero{padding:22px}main{padding:24px 16px}}
+
+.technical{display:grid;grid-template-columns:1fr 1fr;gap:18px}.technical section{margin:0;min-width:0}.wide{grid-column:1/-1}.technical h2{font:600 14px ui-monospace,Consolas,monospace;text-transform:uppercase;letter-spacing:1px;color:var(--accent)}.plot{width:100%;height:200px;background:var(--plot);border-radius:8px}.cross{height:300px}.readout{font:13px/1.8 ui-monospace,Consolas,monospace;color:var(--readout);white-space:pre-wrap}.console{height:210px;overflow:auto;font:12px/1.7 ui-monospace,Consolas,monospace;color:var(--console-text);background:var(--console);padding:14px;white-space:pre;tab-size:2}.gauge{height:12px;background:var(--background);border-radius:8px;overflow:hidden;margin:10px 0}.gauge span{display:block;background:var(--accent);height:100%;width:0}.technical .muted{font-size:12px}.metric-strip{display:flex;gap:28px;flex-wrap:wrap;margin-bottom:14px}.metric-strip b{color:var(--accent)}@media(max-width:760px){.technical{grid-template-columns:1fr}.wide{grid-column:auto}}
+</style></head><body><main>
+<header><div><div class="brand">A little movement adds up</div><h1>MouseTrail</h1><div class="profile-label">PROFILE / __PROFILE__</div></div><div><label for="theme">Theme </label><select id="theme"><option value="midnight">Midnight mint</option><option value="amber">Amber terminal</option><option value="cyan">Cyan lab</option><option value="violet">Violet spectrum</option></select> <button id="install">Install app</button> <span class="badge" id="status">Connecting…</span></div></header>
+<div class="hero"><div class="muted">CURRENT SESSION · CURSOR DISTANCE</div><div class="number"><span id="pixels">0</span> <small>px</small></div><p id="physical">Estimated screen distance · 0.00 m</p><div class="row"><div><button class="primary" id="start">Start tracking</button> <button id="pause" disabled>Pause & save</button></div><button id="new">Finish session</button></div></div>
+<div class="cards"><div class="card"><span class="muted">Tracking time</span><div class="value" id="duration">00:00:00</div></div><div class="card"><span class="muted">Average speed</span><div class="value"><span id="speed">0</span> <small>px/s</small></div></div><div class="card"><span class="muted">Lifetime distance</span><div class="value"><span id="lifetime">0</span> <small>px</small></div></div></div>
+<div id="notice" role="status" aria-live="polite"></div>
+<div class="technical">
+<section class="wide"><h2>Live equation engine</h2><div class="metric-strip"><span>Samples <b id="sample-total">0</b></span><span>Peak speed <b id="peak-speed">0</b> px/s</span><span>Largest step <b id="max-step">0</b> px</span><span>Sample rate <b id="sample-rate">0</b> Hz</span></div><div class="readout" id="equations">Awaiting cursor samples…</div></section>
+<section><h2>Velocity / time</h2><svg class="plot" id="speed-chart" viewBox="0 0 480 200" role="img" aria-label="Cursor speed over recent time"></svg><div class="muted">px/s · latest 12 seconds · automatic vertical scale</div></section>
+<section><h2>Movement histogram</h2><svg class="plot" id="histogram" viewBox="0 0 480 200" role="img" aria-label="Counts of movement sizes"></svg><div class="muted">Sample count by displacement in pixels · current session</div></section>
+<section><h2>Acceleration vector / XY</h2><svg class="plot cross" id="acceleration" viewBox="0 0 400 300" role="img" aria-label="Horizontal and vertical acceleration crosshair"></svg><div class="readout" id="accel-values">aₓ = 0 · aᵧ = 0 px/s²</div><div class="muted">Positive X points right; positive Y points up. Latest 3 seconds, symmetric automatic scale. Estimated from consecutive samples; small timing changes can create spikes.</div></section>
+<section><h2>Direction distribution</h2><svg class="plot" id="directions" viewBox="0 0 480 200" role="img" aria-label="Movement counts by direction"></svg><h2>Moving / sampled time</h2><div class="gauge"><span id="activity-bar"></span></div><div class="readout" id="activity-value">0% moving</div><div class="muted">Fraction of sampled tracking time with nonzero movement.</div></section>
+<section><h2>Sample interval / time</h2><svg class="plot" id="timing-chart" viewBox="0 0 480 200" role="img" aria-label="Sample interval in milliseconds"></svg><div class="muted">Milliseconds between samples · nominal interval 50 ms</div></section>
+<section><h2>Step distance / time</h2><svg class="plot" id="step-chart" viewBox="0 0 480 200" role="img" aria-label="Cursor distance per sample"></svg><div class="muted">Pixels travelled per sample · latest 12 seconds</div></section>
+<section class="wide"><div class="row"><h2>Telemetry console</h2><label><input style="width:auto" type="checkbox" id="follow-log" checked> Follow latest</label></div><div class="console" id="telemetry-log" tabindex="0" aria-label="Recent cursor sample log">Waiting for tracking data.</div></section>
+</div><section><div class="row"><div><h2>Your sessions</h2><p>Saved automatically. Your latest 100 sessions appear here.</p></div><button id="export">Export all as CSV</button></div><div class="scroll"><table><thead><tr><th>Started</th><th>Distance</th><th>Tracking time</th><th>Screen estimate</th></tr></thead><tbody id="history"><tr><td colspan="4">Start your first session to see it here.</td></tr></tbody></table></div></section>
+<section><h2>Screen calibration</h2><p>Enter your screen’s pixels per inch (PPI) to estimate cursor travel in metres. The default of 96 is approximate. Different monitors can have different densities.</p><p><a href="https://dpi.lv/" target="_blank" rel="noopener noreferrer" style="display:inline-block;color:#91edc1;border:1px solid #52637c;border-radius:8px;padding:11px 17px;text-decoration:none">Calibrate my screen at dpi.lv ↗</a></p><p>Use the website to find your screen PPI, then enter the result below.</p><form id="calibration"><label for="dpi">Screen PPI </label><input id="dpi" type="number" min="20" max="2000" step="any" value="96" required> <button type="submit">Save calibration</button></form></section>
+<footer>Runs on this Windows PC · Tracks cursor positions every 50 ms · History is stored locally<br>Distance is the sampled cursor path across the screen. It does not measure physical mouse travel on your desk.</footer>
+</main><script>
+const token='__TOKEN__';
+const $=id=>document.getElementById(id);
+const number=value=>Math.round(value).toLocaleString();
+const duration=value=>{const s=Math.floor(value);return [Math.floor(s/3600),Math.floor(s/60)%60,s%60].map(v=>String(v).padStart(2,'0')).join(':')};
+
+const themeSelect=$('theme');
+try {themeSelect.value=localStorage.getItem('mousetrail-theme')||'midnight';} catch {}
+function applyTheme(){document.documentElement.dataset.theme=themeSelect.value;try{localStorage.setItem('mousetrail-theme',themeSelect.value)}catch{}}
+applyTheme();themeSelect.onchange=applyTheme;
+function accentColor(){return getComputedStyle(document.documentElement).getPropertyValue('--accent').trim()||'#91edc1';}
+
+let initialized=false,busy=false;
+async function request(path,body){const response=await fetch('/api/'+path,{method:body===undefined?'GET':'POST',headers:{'X-MouseTrail-Token':token,'Content-Type':'application/json'},body:body===undefined?undefined:JSON.stringify(body)});if(!response.ok){let message='Request failed';try{message=(await response.json()).error||message}catch{}throw Error(message)}return response}
+function render(s){renderTelemetry(s);$('status').textContent=s.running?'● Tracking':'Paused';$('pixels').textContent=number(s.pixels);$('physical').textContent='Estimated screen distance · '+(s.pixels/s.dpi*0.0254).toFixed(2)+' m';$('duration').textContent=duration(s.seconds);$('speed').textContent=number(s.seconds?s.pixels/s.seconds:0);$('lifetime').textContent=number(s.lifetime_pixels);$('start').disabled=s.running;$('start').textContent=s.session_id?'Resume tracking':'Start tracking';$('pause').disabled=!s.running;$('notice').textContent=s.error||'';if(!initialized){$('dpi').value=s.dpi;initialized=true}const tbody=$('history');tbody.replaceChildren();for(const session of s.history){const tr=document.createElement('tr');for(const value of [new Date(session.started).toLocaleString(),number(session.pixels)+' px',duration(session.seconds),(session.pixels/session.dpi*0.0254).toFixed(2)+' m']){const td=document.createElement('td');td.textContent=value;tr.append(td)}tbody.append(tr)}if(!s.history.length){const tr=document.createElement('tr');const td=document.createElement('td');td.colSpan=4;td.textContent='Start your first session to see it here.';tr.append(td);tbody.append(tr)}}
+async function action(path,body={}){if(busy)return;busy=true;try{render(await(await request(path,body)).json())}catch(e){$('notice').textContent=e.message}finally{busy=false}}
+$('start').onclick=()=>action('start');$('pause').onclick=()=>action('pause');$('new').onclick=()=>action('new');$('calibration').onsubmit=e=>{e.preventDefault();action('dpi',{dpi:Number($('dpi').value)})};
+$('export').onclick=async()=>{try{const response=await request('export');const url=URL.createObjectURL(await response.blob());const a=document.createElement('a');a.href=url;a.download='mousetrail-sessions.csv';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000)}catch(e){$('notice').textContent=e.message}};
+
+const SVG_NS = 'http://www.w3.org/2000/svg';
+function svgElement(type, attributes, text) {
+  const node = document.createElementNS(SVG_NS, type);
+  for (const [key, value] of Object.entries(attributes)) node.setAttribute(key, value);
+  if (text !== undefined) node.textContent = text;
+  return node;
+}
+function linePlot(id, samples, value, color) {
+  const svg = $(id); svg.replaceChildren();
+  const maximum = Math.max(1, ...samples.map(value));
+  for (let i=0;i<4;i++) {
+    const y=20+i*48;
+    svg.append(svgElement('line',{x1:48,y1:y,x2:470,y2:y,stroke:'#293b4b'}));
+    svg.append(svgElement('text',{x:4,y:y+4,fill:'#97aabc','font-size':10},Math.round(maximum*(1-i/3))));
+  }
+  if (!samples.length) return;
+  const end=samples.at(-1).timestamp, start=Math.max(0,end-12), width=Math.max(1,end-start);
+  const points=samples.map(t=>`${48+(t.timestamp-start)/width*422},${164-value(t)/maximum*144}`).join(' ');
+  svg.append(svgElement('polyline',{points,fill:'none',stroke:color,'stroke-width':1.8}));
+}
+function bars(id, values, labels) {
+  const svg=$(id);svg.replaceChildren();const max=Math.max(1,...values);
+  values.forEach((value,i)=>{
+    const x=18+i*58,height=value/max*135;
+    svg.append(svgElement('rect',{x,y:160-height,width:38,height,fill:accentColor(),rx:3}));
+    svg.append(svgElement('text',{x:x+19,y:150-height,fill:'#dcebf5','text-anchor':'middle','font-size':11},value));
+    svg.append(svgElement('text',{x:x+19,y:182,fill:'#97aabc','text-anchor':'middle','font-size':10},labels[i]));
+  });
+}
+function accelerationPlot(samples) {
+  const svg=$('acceleration');svg.replaceChildren();
+  const end=samples.at(-1)?.timestamp||0;
+  const points=samples.filter(t=>t.ax!==null&&t.ay!==null&&t.timestamp>=end-3);
+  const scale=Math.max(100,...points.flatMap(t=>[Math.abs(t.ax),Math.abs(t.ay)]));
+  for(const radius of [40,80,120]) svg.append(svgElement('circle',{cx:200,cy:150,r:radius,fill:'none',stroke:'#263b4b'}));
+  svg.append(svgElement('line',{x1:35,y1:150,x2:365,y2:150,stroke:'#7e9bad'}));
+  svg.append(svgElement('line',{x1:200,y1:20,x2:200,y2:280,stroke:'#7e9bad'}));
+  for(const [x,y,label] of [[350,140,'+X'],[30,140,'−X'],[210,25,'+Y'],[210,280,'−Y']]) svg.append(svgElement('text',{x,y,fill:accentColor(),'font-size':12},label));
+  svg.append(svgElement('text',{x:8,y:295,fill:'#97aabc','font-size':11},'Axis scale ±'+Math.round(scale).toLocaleString()+' px/s²'));
+  if(points.length){
+    const coordinates=points.map(t=>`${200+t.ax/scale*120},${150-t.ay/scale*120}`).join(' ');
+    svg.append(svgElement('polyline',{points:coordinates,fill:'none',stroke:'#af9fff','stroke-width':1.4,opacity:.65}));
+    const last=points.at(-1),x=200+last.ax/scale*120,y=150-last.ay/scale*120;
+    svg.append(svgElement('line',{x1:200,y1:150,x2:x,y2:y,stroke:accentColor(),'stroke-width':2}));
+    svg.append(svgElement('circle',{cx:x,cy:y,r:5,fill:accentColor()}));
+    $('accel-values').textContent=`aₓ = ${last.ax.toFixed(1)} · aᵧ = ${last.ay.toFixed(1)} px/s²`;
+  }else $('accel-values').textContent='Awaiting consecutive velocity samples';
+}
+function renderTelemetry(s) {
+  const samples=s.telemetry||[],last=samples.at(-1);
+  $('sample-total').textContent=number(s.samples);
+  $('peak-speed').textContent=number(s.max_speed||0);
+  $('max-step').textContent=(s.max_step||0).toFixed(2);
+  $('sample-rate').textContent=last?(1/last.interval).toFixed(1):'0';
+  if(last) $('equations').textContent=`Δx = ${last.dx} px   Δy(screen) = ${last.dy} px   Δt = ${(last.interval*1000).toFixed(2)} ms
+Δs = √(Δx² + Δy²) = ${last.distance.toFixed(3)} px
+v = Δs / Δt = ${last.speed.toFixed(2)} px/s   ΣΔs = ${s.pixels.toFixed(2)} px
+aₓ = Δvₓ / Δt(midpoints)   aᵧ = Δvᵧ / Δt(midpoints)
+Screen distance = ΣΔs / PPI × 0.0254 = ${(s.pixels/s.dpi*.0254).toFixed(5)} m`;
+  else $('equations').textContent='Awaiting cursor samples…';
+  linePlot('speed-chart',samples,t=>t.speed,accentColor());
+  linePlot('timing-chart',samples,t=>t.interval*1000,'#f6c477');
+  linePlot('step-chart',samples,t=>t.distance,'#82cafa');
+  bars('histogram',s.histogram||Array(8).fill(0),['0','<2','2–5','5–10','10–25','25–50','50–100','100+']);
+  bars('directions',s.directions||Array(8).fill(0),['E','SE','S','SW','W','NW','N','NE']);
+  accelerationPlot(samples);
+  const activity=s.seconds?100*s.moving_seconds/s.seconds:0;
+  $('activity-bar').style.width=activity+'%';
+  $('activity-value').textContent=activity.toFixed(1)+'% moving · '+(100-activity).toFixed(1)+'% stationary';
+  const consoleBox=$('telemetry-log');
+  if($('follow-log').checked){
+    consoleBox.textContent=samples.map(t=>`#${String(t.sequence).padStart(7,'0')}  t=${t.timestamp.toFixed(3)}s  xy=(${t.x},${t.y})  Δ=(${t.dx},${t.dy})  ds=${t.distance.toFixed(3)}px  dt=${(t.interval*1000).toFixed(2)}ms  v=${t.speed.toFixed(2)}px/s  a=(${t.ax?.toFixed(1)??'—'},${t.ay?.toFixed(1)??'—'})`).join('\n')||'Waiting for tracking data.';
+    consoleBox.scrollTop=consoleBox.scrollHeight;
+  }
+}
+
+async function poll(){try{if(!busy)render(await(await request('state')).json())}catch(e){$('status').textContent='Disconnected';$('notice').textContent='The Windows service is unavailable. Open MouseTrail.exe and reload this window to reconnect.'}finally{setTimeout(poll,250)}}poll();
+
+let installPrompt;
+const installButton = $('install');
+installButton.hidden = window.matchMedia('(display-mode: standalone)').matches;
+window.addEventListener('beforeinstallprompt', event => {
+  event.preventDefault();
+  installPrompt = event;
+});
+window.addEventListener('appinstalled', () => {
+  installPrompt = null;
+  installButton.hidden = true;
+});
+installButton.onclick = async () => {
+  if (!installPrompt) {
+    alert('In Microsoft Edge or Chrome, use the install app icon in the address bar or the browser menu. Keep MouseTrail.exe running for desktop tracking.');
+    return;
+  }
+  try {
+    await installPrompt.prompt();
+    await installPrompt.userChoice;
+  } finally { installPrompt = null; }
+};
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('/sw.js').catch(() => {
+    $('notice').textContent = 'App installation could not initialize. Reload this page to retry.';
+  });
+}
+</script></body></html>
